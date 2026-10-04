@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-import streamlit as st
+import base64
+from pathlib import Path
+
 import pandas as pd
+import streamlit as st
 
 from src.analytics import build_hierarchy_long, cluster_signature, compute_pca_and_clusters, summarize_story
 from src.config import ACCESS_DATE, APP_SUBTITLE, APP_TITLE, ASSETS, IMK_FEATURES, PLOTLY_CONFIG
@@ -157,8 +160,44 @@ def interpret_top10(map_df: pd.DataFrame, quarter: str) -> str:
         f"dan rata-rata kontribusi kelompok 10 besar mencapai <strong>{fmt_pct(avg_top10)}</strong>."
     )
 
+def get_base64_image(image_path: Path) -> str:
+    image_bytes = image_path.read_bytes()
+    return base64.b64encode(image_bytes).decode()
+
 
 inject_css()
+
+hero_image = get_base64_image(ASSETS / "hero-imk.jpg")
+
+st.markdown(
+    f"""
+    <style>
+    .hero {{
+        background:
+            linear-gradient(
+                90deg,
+                rgba(8, 24, 43, 0.92) 0%,
+                rgba(8, 24, 43, 0.78) 42%,
+                rgba(8, 24, 43, 0.46) 70%,
+                rgba(8, 24, 43, 0.25) 100%
+            ),
+            url("data:image/jpeg;base64,{hero_image}") center center / cover no-repeat !important;
+    }}
+
+    @media (max-width: 640px) {{
+        .hero {{
+            background:
+                linear-gradient(
+                    rgba(8, 24, 43, 0.78),
+                    rgba(8, 24, 43, 0.78)
+                ),
+                url("data:image/jpeg;base64,{hero_image}") 56% center / cover no-repeat !important;
+        }}
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ───────────────────────────────── Data & analysis ─────────────────────────────────
 imk = load_imk()
