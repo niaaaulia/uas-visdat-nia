@@ -1,242 +1,397 @@
-# Jejak Industri Mikro & Kecil Indonesia (Streamlit Scrollytelling)
+# Jejak Industri Mikro dan Kecil Indonesia
 
-Web story interaktif untuk proyek UAS Visualisasi Data dan Informasi. Aplikasi menggabungkan **tiga topik** yaitu: **data berdimensi tinggi (multivariat), data berhierarki, dan data geospasial**.
+Web data storytelling interaktif untuk proyek UAS **Visualisasi Data dan Informasi**. Aplikasi dibangun dengan **Streamlit** dan **Plotly** untuk membaca kondisi Industri Mikro dan Kecil (IMK) Indonesia melalui tiga sudut pandang: **multivariat, hierarki, dan geospasial**.
 
-## Kenapa arsitekturnya seperti ini?
-
-Proyek menggunakan **Streamlit + Plotly** dengan satu halaman panjang, navigasi editorial yang selalu terlihat, dan satu permukaan scroll browser. Semua chart adalah native `st.plotly_chart`; **tidak ada `components.html()` / iframe custom**, sehingga tidak tercipta scrollbar kedua. Bab multivariat memakai visual full-width agar seleksi dan label terbaca lega, sedangkan bab hierarki/geospasial tetap dapat memakai sticky visual pada desktop. Setiap bab interaktif dibungkus `st.fragment`, sehingga interaksi tidak merender ulang seluruh halaman.
-
-### Fitur utama
-
-- PCA 9 indikator IMK / 38 provinsi.
-- K-Means eksploratif tiga cluster + outlier score.
-- **Brushing & linking**: lasso/box selection pada PCA → parallel coordinates + clustered heatmap.
-- Radar persentil untuk profil provinsi; daftar provinsinya mengikuti seleksi PCA.
-- Hierarki level: pulau → provinsi → skala usaha.
-- Treemap + sunburst dengan **size dan color untuk dua variabel berbeda**.
-- Choropleth kontribusi sektor C (%) + proportional symbols nilai sektor C (miliar rupiah).
-- Quantile / equal interval classification.
-- Tooltip, legend, pan/zoom, layer control, quarter filter.
-- Palet **Okabe–Ito + Cividis**.
-- Source disclosure di setiap visualisasi.
-- Data-quality audit dan automated checks.
+Project ini menggunakan data utama dari **Badan Pusat Statistik (BPS)** dan menyajikannya dalam satu alur cerita interaktif yang dapat dibaca dari tingkat provinsi hingga kabupaten/kota.
 
 ---
 
-## Struktur proyek
+## Tujuan Project
+
+Project ini dirancang untuk menjawab tiga pertanyaan utama:
+
+1. Bagaimana karakteristik dan kemiripan profil IMK antarprovinsi berdasarkan sembilan indikator utama IMK tahun 2025?
+2. Bagaimana struktur IMK tersusun menurut kelompok pulau, provinsi, dan skala usaha Mikro/Kecil?
+3. Bagaimana variasi spasial besaran dan kontribusi industri pengolahan terhadap PDRB kabupaten/kota pada Triwulan I dan Triwulan II tahun 2026?
+
+---
+
+## Alur Data Story
+
+Aplikasi disusun sebagai **single-page scrollytelling** dengan tiga bab utama.
+
+### 1. Profil IMK Antarprovinsi — Analisis Multivariat
+
+Bab pertama membandingkan **38 provinsi** menggunakan sembilan indikator IMK:
+
+- jumlah perusahaan;
+- jumlah tenaga kerja;
+- nilai input;
+- nilai output;
+- nilai tambah;
+- pengeluaran tenaga kerja;
+- persentase pemanfaatan internet;
+- persentase pemanfaatan pinjaman;
+- persentase usaha yang menjalin kemitraan.
+
+Enam indikator berbentuk magnitude ditransformasi menggunakan `log1p`, kemudian seluruh sembilan indikator distandardisasi dengan **z-score**.
+
+Visualisasi yang digunakan:
+
+- **PCA scatterplot** untuk merangkum pola multivariat;
+- **K-Means** tiga cluster sebagai bantuan eksplorasi pola;
+- **parallel coordinates** untuk membandingkan profil indikator;
+- **clustered heatmap** untuk melihat pola relatif antardaerah;
+- **radar chart berbasis percentile rank** untuk membaca profil satu provinsi;
+- **brushing & linking** dari seleksi PCA ke visual terkait.
+
+---
+
+### 2. Susunan IMK — Hierarki Wilayah dan Skala Usaha
+
+Bab kedua membaca struktur IMK melalui hierarki:
 
 ```text
-vdi_imk_streamlit_story/
-├── app.py
-├── requirements.txt
-├── requirements-dev.txt
-├── README.md
-├── PROJECT_STRUCTURE.txt
-├── .gitignore
-├── .streamlit/
-│   └── config.toml
-├── assets/
-│   └── style.css
-├── data/
-│   ├── raw/
-│   │   ├── data_imk_fix.csv
-│   │   ├── data_pdrb_kabkota.csv
-│   │   └── batas_kabkota_indonesia_simplify.geojson
-│   └── processed/
-│       ├── imk_analysis.csv
-│       ├── pdrb_map.csv
-│       ├── pdrb_without_geometry.csv
-│       ├── boundary_513.geojson
-│       └── data_quality.json
-├── docs/
-│   ├── data_dictionary.md
-│   └── methodology.md
-├── scripts/
-│   ├── prepare_data.py
-│   └── check_project.py
-├── src/
-│   ├── __init__.py
-│   ├── analytics.py
-│   ├── config.py
-│   ├── data.py
-│   ├── figures.py
-│   └── ui.py
-└── tests/
-    ├── conftest.py
-    └── test_data_contract.py
+Kelompok Pulau
+└── Provinsi
+    └── Skala Usaha
 ```
+
+Pengguna dapat memilih seluruh Indonesia atau memfokuskan visualisasi pada satu kelompok pulau.
+
+Dua representasi digunakan:
+
+#### Treemap
+
+- **ukuran area**: jumlah usaha;
+- **warna**: nilai tambah per pekerja;
+- mendukung drill-down dari wilayah besar ke provinsi dan skala usaha.
+
+#### Sunburst
+
+- **ukuran sektor**: jumlah tenaga kerja;
+- **warna**: output per usaha;
+- mempertahankan hubungan induk–anak dalam bentuk radial.
+
+Kedua visualisasi memakai struktur hierarki yang sama, tetapi mengkodekan variabel yang berbeda agar pembaca memperoleh sudut pandang yang saling melengkapi.
 
 ---
 
-## Menjalankan aplikasi
+### 3. Jejak Industri Pengolahan — Geospasial Kabupaten/Kota
 
-Disarankan Python 3.11 atau 3.12.
+Bab ketiga menggunakan data **PDRB Triwulanan ADHB Kabupaten/Kota tahun 2026**, khususnya:
+
+- **Kategori C — Industri Pengolahan**;
+- **PDRB total**;
+- **Triwulan I**;
+- **Triwulan II**.
+
+Dua jenis peta digunakan.
+
+#### Choropleth
+
+Warna menunjukkan kontribusi sektor C terhadap PDRB:
+
+```text
+Kontribusi sektor C (%) =
+PDRB sektor C / PDRB total × 100
+```
+
+Default klasifikasi menggunakan **Equal Interval**, sedangkan **Quantile** tersedia sebagai alternatif eksplorasi.
+
+#### Proportional Symbol Map
+
+Ukuran simbol menunjukkan **nilai nominal PDRB sektor C dalam miliar rupiah**.
+
+Dengan dua peta tersebut, pengguna dapat membedakan:
+
+- daerah dengan industri pengolahan yang besar secara nominal; dan
+- daerah dengan industri pengolahan yang memiliki peran besar dalam struktur ekonomi lokal.
+
+Bab geospasial juga dilengkapi **peringkat 10 kabupaten/kota dengan kontribusi sektor C tertinggi** yang berubah mengikuti periode yang dipilih.
+
+---
+
+## Sumber Data
+
+### Data IMK 2025 — BPS
+
+Enam tabel statistik BPS:
+
+1. **Jumlah Perusahaan Industri Skala Mikro dan Kecil Menurut Provinsi (Unit), 2025**
+2. **Jumlah Tenaga Kerja Industri Skala Mikro dan Kecil Menurut Provinsi (Orang), 2025**
+3. **Nilai Input Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025**
+4. **Nilai Output Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025**
+5. **Nilai Tambah (Harga Pasar) Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025**
+6. **Pengeluaran untuk Tenaga Kerja Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025**
+
+Publikasi:
+
+**Profil Industri Mikro dan Kecil 2025**
+
+Tabel yang digunakan:
+
+- Tabel 30 — pemanfaatan pinjaman;
+- Tabel 38 — kemitraan;
+- Tabel 48 — pemanfaatan internet.
+
+Tanggal akses data numerik: **3 Oktober 2026**.
+
+### Data PDRB 2026 — BPS
+
+**PDRB Triwulanan Atas Dasar Harga Berlaku Menurut 17 Kategori Lapangan Usaha di Kabupaten/Kota, 2026**
+
+Variabel yang digunakan:
+
+- sektor C Triwulan I;
+- sektor C Triwulan II;
+- PDRB total Triwulan I;
+- PDRB total Triwulan II.
+
+Tanggal akses: **3 Oktober 2026**.
+
+### Data Batas Wilayah
+
+Batas kabupaten/kota Indonesia digunakan sebagai data spasial pendukung untuk visualisasi peta dan telah diolah menjadi GeoJSON yang lebih ringan untuk deployment.
+
+Sumber: **LapakGIS — Batas Kabupaten/Kota Indonesia**
+
+Tanggal akses: **4 Oktober 2026**.
+
+---
+
+## Teknologi
+
+Project dibangun menggunakan:
+
+- **Python**
+- **Streamlit**
+- **Plotly**
+- **pandas**
+- **NumPy**
+- **scikit-learn**
+- library pengolahan data geospasial dan geometri Python
+- **CSS** untuk penyesuaian layout dan responsivitas
+
+Palet warna visualisasi menggunakan kombinasi **Okabe–Ito** untuk elemen kategorikal dan **Cividis** untuk skala sekuensial agar tetap terbaca dengan baik dan ramah terhadap gangguan penglihatan warna.
+
+---
+
+## Alur Pemrosesan
+
+```mermaid
+flowchart LR
+    A[Data mentah BPS dan GeoJSON] --> B[scripts/prepare_data.py]
+    B --> C[data/processed]
+    C --> D[src/data.py]
+    D --> E[src/analytics.py]
+    E --> F[src/figures.py]
+    F --> G[app.py]
+    G --> H[Streamlit Web Story]
+```
+
+### `scripts/prepare_data.py`
+
+Menyiapkan data untuk aplikasi, termasuk:
+
+- membaca data mentah;
+- melakukan standardisasi nama dan format;
+- menghitung indikator turunan;
+- mempersiapkan data peta;
+- menghasilkan file hasil olahan pada `data/processed/`.
+
+### `src/data.py`
+
+Menangani proses pembacaan data yang digunakan oleh aplikasi.
+
+### `src/analytics.py`
+
+Berisi proses analitis utama, antara lain:
+
+- transformasi dan standardisasi variabel;
+- PCA;
+- K-Means;
+- outlier score;
+- hierarchical ordering untuk heatmap;
+- klasifikasi nilai peta.
+
+### `src/figures.py`
+
+Berisi fungsi pembentukan seluruh visualisasi Plotly.
+
+### `src/ui.py`
+
+Berisi komponen antarmuka yang digunakan berulang di aplikasi, seperti heading, source note, callout, navigation, dan komponen presentasi lainnya.
+
+### `app.py`
+
+Menggabungkan data, analisis, visualisasi, interaksi, dan narasi menjadi satu halaman data storytelling.
+
+---
+
+## Menjalankan Project Secara Lokal
+
+Direkomendasikan menggunakan Python 3.11 atau 3.12.
+
+### 1. Clone repository
+
+```bash
+git clone <URL_REPOSITORY>
+cd uas_visdat_niaulia
+```
+
+### 2. Buat virtual environment
 
 ```bash
 python -m venv .venv
+```
 
-# Windows
+Windows:
+
+```powershell
 .venv\Scripts\activate
+```
 
-# macOS/Linux
+macOS/Linux:
+
+```bash
 source .venv/bin/activate
+```
 
+### 3. Install dependency
+
+```bash
 pip install -r requirements.txt
+```
+
+### 4. Siapkan data
+
+```bash
 python scripts/prepare_data.py
+```
+
+### 5. Jalankan pemeriksaan project
+
+```bash
 python scripts/check_project.py
+python scripts/check_ui_contract.py
+```
+
+### 6. Jalankan aplikasi
+
+```bash
 streamlit run app.py
 ```
 
-Aplikasi akan tersedia pada alamat lokal yang ditampilkan Streamlit, biasanya `http://localhost:8501`.
-
-> `scripts/prepare_data.py` bersifat deterministic: data raw → data processed → audit JSON. Commit `data/processed/` ke repositori agar deployment tidak perlu memproses GeoJSON setiap startup.
-
----
-
-## Deployment ke Streamlit Community Cloud
-
-1. Buat repository GitHub publik dan commit seluruh folder proyek.
-2. Pastikan `requirements.txt`, `.streamlit/config.toml`, `app.py`, dan `data/processed/` ikut di-commit.
-3. Pada Streamlit Community Cloud, pilih repository/branch.
-4. Main file: `app.py`.
-5. Deploy.
-6. Uji pada desktop dan mobile serta pastikan semua source link dan tooltip berfungsi.
-
-Tidak ada API key atau secret untuk aplikasi ini.
-
----
-
-## Data audit yang sudah dilakukan
-
-Output `data/processed/data_quality.json` saat ini:
-
-- IMK: **38 provinsi unik**, tanpa missing value.
-- Seluruh total mikro+kecil untuk jumlah perusahaan, tenaga kerja, input, output, nilai tambah, dan pengeluaran tenaga kerja **konsisten secara aritmetis**.
-- PDRB: **514 kabupaten/kota unik**.
-- Boundary: **513 feature unik**, invalid geometry = **0**, empty geometry = **0**.
-- Semua 513 boundary exact-match ke PDRB.
-- PDRB tanpa geometry: **Kabupaten Sumbawa**.
-
-Jangan menghapus Kabupaten Sumbawa dari data PDRB. Aplikasi secara eksplisit menyatakan cakupan peta 513/514.
-
----
-
-## Pemenuhan ketentuan topik
-
-### 1) Data berdimensi tinggi
-
-| Ketentuan | Implementasi |
-|---|---|
-| ≥8 variabel numerik, ≥34 observasi | 9 indikator IMK, 38 provinsi |
-| Reduksi dimensi | PCA |
-| ≥2 teknik lain | parallel coordinates, clustered heatmap, radar |
-| Brushing & linking | seleksi PCA menautkan parallel coordinates + heatmap + pilihan radar |
-| Kelompok/pencilan | K-Means 3 cluster + outlier score |
-
-### 2) Struktur hierarki IMK
-
-| Ketentuan | Implementasi |
-|---|---|
-| ≥3 level | 4 level: Indonesia → pulau → provinsi → skala |
-| ≥2 representasi | treemap + sunburst |
-| size/color berbeda | treemap: perusahaan vs nilai tambah/pekerja; sunburst: tenaga kerja vs output/usaha |
-| drill-down/breadcrumb | native Plotly zoom + treemap pathbar |
-
-### 3) Jejak spasial industri pengolahan
-
-| Ketentuan | Implementasi |
-|---|---|
-| tingkat kab/kota ±500 | 514 geometry |
-| ≥2 peta | choropleth + proportional symbols |
-| choropleth rasio | kontribusi sektor C / PDRB total (%) |
-| klasifikasi | quantile (default) + equal interval |
-| interaksi | tooltip, legend, pan/zoom, tipe peta, periode, dan klasifikasi |
-
----
-
-## Mengapa choropleth memakai kontribusi, bukan sektor C absolut?
-
-Nilai absolut akan sangat dipengaruhi ukuran ekonomi kabupaten/kota. Karena itu warna mengkodekan:
+Aplikasi kemudian dapat dibuka melalui alamat lokal yang ditampilkan Streamlit, umumnya:
 
 ```text
-kontribusi sektor C (%) = PDRB sektor C / PDRB total × 100
-
-Periode geospasial yang digunakan adalah **Triwulan I dan Triwulan II tahun 2026**.
+http://localhost:8501
 ```
-
-Nilai absolut sektor C tetap ditampilkan melalui **peta simbol proporsional**, sehingga pembaca bisa membedakan:
-
-- wilayah yang **besar secara nominal**, dan
-- wilayah yang **sangat terspesialisasi pada industri pengolahan**.
 
 ---
 
-## Catatan metodologi PCA
+## Pengujian
 
-PCA memakai **9 indikator IMK**. Enam indikator magnitude—jumlah perusahaan, tenaga kerja, nilai input, nilai output, nilai tambah, dan pengeluaran tenaga kerja—ditransformasi `log1p`. Tiga indikator adopsi—internet, pinjaman, dan kemitraan—dipakai sebagai persentase. Setelah itu seluruh indikator distandardisasi dengan z-score.
+Dependency untuk proses pengembangan dan testing dapat dipasang dengan:
 
-K-Means hanya dipakai sebagai bantuan membaca pola. Standardized values di-clip ±2,5 **hanya pada tahap K-Means** agar pencilan ekstrem tidak membentuk cluster tunggal. PCA, heatmap, parallel coordinates, dan outlier score tetap menggunakan nilai standardized asli.
+```bash
+pip install -r requirements-dev.txt
+```
 
-Lihat `docs/methodology.md` untuk uraian lengkap.
+Kemudian jalankan:
+
+```bash
+pytest -q
+```
+
+Project juga menyediakan pemeriksaan otomatis terhadap:
+
+- struktur dan konsistensi data;
+- kontrak visualisasi;
+- keterhubungan data hierarki;
+- pemrosesan geospasial;
+- serialisasi figure Plotly;
+- elemen UI utama.
+
+---
+
+## Deployment
+
+Aplikasi dirancang untuk dijalankan pada **Streamlit Community Cloud**.
+
+Langkah umum:
+
+1. push project ke repository GitHub;
+2. pilih repository dan branch utama pada Streamlit Community Cloud;
+3. gunakan `app.py` sebagai main file;
+4. deploy aplikasi;
+5. uji kembali seluruh visual dan interaksi pada desktop dan perangkat mobile.
+
+File `data/processed/` disertakan di repository sehingga aplikasi dapat langsung membaca data hasil pengolahan saat deployment.
+
+---
+
+## Fitur Interaktif
+
+Interaksi yang tersedia pada aplikasi antara lain:
+
+- lasso dan box selection pada PCA;
+- brushing & linking antarvisual multivariat;
+- pemilihan provinsi pada radar chart;
+- filter kelompok pulau;
+- drill-down pada treemap;
+- drill-down pada sunburst;
+- pemilihan Triwulan I atau Triwulan II;
+- pergantian choropleth dan proportional symbol map;
+- pilihan klasifikasi Equal Interval atau Quantile;
+- tooltip informatif;
+- zoom dan pan pada peta;
+- interpretasi yang berubah mengikuti pilihan pengguna.
+
+---
+
+## Desain Responsif
+
+Aplikasi menggunakan layout responsif untuk desktop, tablet, dan ponsel.
+
+Beberapa penyesuaian yang diterapkan:
+
+- kolom otomatis ditumpuk pada layar sempit;
+- chart menggunakan lebar container;
+- kontrol dapat melakukan wrap;
+- navigasi tetap dapat digunakan pada layar kecil;
+- tipografi dan jarak antarelemen disesuaikan berdasarkan ukuran layar;
+- tidak menggunakan iframe custom sehingga halaman mempertahankan satu alur scroll browser.
+
+---
+
+## Dokumentasi Tambahan
+
+Dokumentasi project tersedia pada:
+
+- `docs/data_dictionary.md` — definisi data dan variabel;
+- `docs/methodology.md` — penjelasan metodologi analisis dan desain visualisasi.
 
 ---
 
 ## Sumber
 
-Data utama bersumber dari **Badan Pusat Statistik (BPS)**:
-
-- enam tabel statistik IMK 2025: jumlah perusahaan, tenaga kerja, input, output, nilai tambah, pengeluaran tenaga kerja;
-- *Profil Industri Mikro dan Kecil 2025*, khususnya Tabel 30 (pinjaman), Tabel 38 (kemitraan), Tabel 48 (internet);
-- PDRB Triwulanan ADHB menurut 17 kategori lapangan usaha kabupaten/kota 2026, kategori C dan PDRB total untuk Triwulan I dan II.
-
-Boundary kabupaten/kota merupakan data pendukung non-BPS dari LapakGIS yang telah direkonsiliasi dan disederhanakan penulis. URL lengkap sumber disimpan di `src/config.py` dan ditampilkan pada setiap visualisasi. Tanggal akses default aplikasi: 4 Oktober 2026.
-
----
-
-## Pengujian sebelum submit
-
-```bash
-python scripts/prepare_data.py
-python scripts/check_project.py
-```
-
-Jika memasang development dependencies:
-
-```bash
-pip install -r requirements-dev.txt
-pytest -q
-```
-
-Target akhir:
-
-```text
-38 provinsi IMK unik                  PASS
-513 unit peta unik                    PASS
-GeoJSON 513 feature                   PASS
-Hanya Sumbawa tanpa geometri          PASS
-PC1+PC2 > 50% variasi                 PASS
-3 cluster eksploratif                 PASS
-Agregat hierarki konsisten            PASS
-Core Plotly figures serializable      PASS
-No iframe custom component            PASS
-```
+- Badan Pusat Statistik. *Jumlah Perusahaan Industri Skala Mikro dan Kecil Menurut Provinsi (Unit), 2025*.
+- Badan Pusat Statistik. *Jumlah Tenaga Kerja Industri Skala Mikro dan Kecil Menurut Provinsi (Orang), 2025*.
+- Badan Pusat Statistik. *Nilai Input Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025*.
+- Badan Pusat Statistik. *Nilai Output Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025*.
+- Badan Pusat Statistik. *Nilai Tambah (Harga Pasar) Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025*.
+- Badan Pusat Statistik. *Pengeluaran untuk Tenaga Kerja Industri Skala Mikro dan Kecil Menurut Provinsi (Juta Rupiah), 2025*.
+- Badan Pusat Statistik. *Profil Industri Mikro dan Kecil 2025*.
+- Badan Pusat Statistik. *PDRB Triwulanan Atas Dasar Harga Berlaku Menurut 17 Kategori Lapangan Usaha di Kabupaten/Kota, 2026*.
+- LapakGIS. *Batas Kabupaten/Kota Indonesia*.
 
 ---
 
-## Penulisan makalah
+## Project
 
-Dalam makalah, hindari menyebut cluster sebagai kategori resmi atau menyimpulkan hubungan kausal. Gunakan bahasa seperti **"secara deskriptif", "pada data ini", "menunjukkan pola", "berasosiasi secara visual"**.
-
-Keterbatasan yang sebaiknya disebutkan:
-
-1. satu kabupaten (Sumbawa) tidak memiliki geometry pada boundary final;
-2. join deployment masih memakai nama kabupaten/kota yang telah direkonsiliasi, bukan kode BPS permanen;
-3. PDRB hanya dua triwulan sehingga pertumbuhan dapat dipengaruhi seasonality dan base effect;
-4. cluster/outlier bersifat eksploratif;
-5. boundary merupakan data pendukung non-BPS.
-
-Penggunaan AI untuk membantu kode/desain harus dideklarasikan dalam Metodologi sesuai ketentuan tugas. Penulis tetap bertanggung jawab untuk memahami dan mendemonstrasikan setiap transformasi serta visualisasi.
-
-## Responsif
-
-Layout menggunakan breakpoint CSS untuk desktop, tablet, dan ponsel. Navigasi tetap dapat digulir horizontal pada layar sangat sempit; kolom cerita, kontrol, dan insight ditumpuk menjadi satu kolom pada ponsel; seluruh Plotly chart menggunakan `use_container_width=True` dan konfigurasi responsive.
+**Mata kuliah:** Visualisasi Data dan Informasi  
+**Bentuk project:** Web Data Storytelling  
+**Framework:** Streamlit + Plotly  
+**Data utama:** Badan Pusat Statistik
