@@ -1,0 +1,38 @@
+{
+  "status": "PASS",
+  "imk": {
+    "rows": 38,
+    "unique_provinces": 38,
+    "missing_values": 0,
+    "additive_checks": {
+      "jumlah_perusahaan_total": true,
+      "jumlah_tk_total": true,
+      "nilai_input_total": true,
+      "nilai_output_total": true,
+      "nilai_tambah_total": true,
+      "pengeluaran_tk_total": true
+    },
+    "internet_denominator_difference_min": -1,
+    "internet_denominator_difference_max": 1,
+    "partnership_denominator_difference_min": -1,
+    "partnership_denominator_difference_max": 1
+  },
+  "geospatial": {
+    "pdrb_rows": 514,
+    "pdrb_unique_kabkota": 514,
+    "boundary_features": 513,
+    "boundary_unique_kabkota": 513,
+    "matched_map_units": 513,
+    "pdrb_without_geometry": [
+      "Sumbawa"
+    ],
+    "boundary_without_pdrb": [],
+    "invalid_geometry_count": 0,
+    "empty_geometry_count": 0
+  },
+  "notes": [
+    "Boundary final berisi 513 geometri valid dan unik.",
+    "Data PDRB BPS berisi 514 kabupaten/kota; Kabupaten Sumbawa dipertahankan di data tabular tetapi tidak ditampilkan pada peta karena geometri tidak tersedia pada boundary yang digunakan.",
+    "Join peta dilakukan secara exact match pada nama kabupaten/kota yang sudah direkonsiliasi saat preprocessing. Untuk pengembangan lanjutan, kode wilayah BPS tetap lebih disarankan sebagai key permanen."
+  ]
+}
