@@ -20,7 +20,7 @@ Project ini dirancang untuk menjawab tiga pertanyaan utama:
 
 Aplikasi disusun sebagai **single-page scrollytelling** dengan tiga bab utama.
 
-### 1. Profil IMK Antarprovinsi — Analisis Multivariat
+### 1. Profil IMK Antarprovinsi (Analisis Multivariat)
 
 Bab pertama membandingkan **38 provinsi** menggunakan sembilan indikator IMK:
 
@@ -47,7 +47,7 @@ Visualisasi yang digunakan:
 
 ---
 
-### 2. Susunan IMK — Hierarki Wilayah dan Skala Usaha
+### 2. Susunan IMK (Hierarki Wilayah dan Skala Usaha)
 
 Bab kedua membaca struktur IMK melalui hierarki:
 
@@ -77,7 +77,7 @@ Kedua visualisasi memakai struktur hierarki yang sama, tetapi mengkodekan variab
 
 ---
 
-### 3. Jejak Industri Pengolahan — Geospasial Kabupaten/Kota
+### 3. Jejak Industri Pengolahan (Geospasial Kabupaten/Kota)
 
 Bab ketiga menggunakan data **PDRB Triwulanan ADHB Kabupaten/Kota tahun 2026**, khususnya:
 
@@ -114,7 +114,7 @@ Bab geospasial juga dilengkapi **peringkat 10 kabupaten/kota dengan kontribusi s
 
 ## Sumber Data
 
-### Data IMK 2025 — BPS
+### Data IMK 2025 (BPS)
 
 Enam tabel statistik BPS:
 
@@ -154,7 +154,7 @@ Tanggal akses: **3 Oktober 2026**.
 
 Batas kabupaten/kota Indonesia digunakan sebagai data spasial pendukung untuk visualisasi peta dan telah diolah menjadi GeoJSON yang lebih ringan untuk deployment.
 
-Sumber: **LapakGIS — Batas Kabupaten/Kota Indonesia**
+Sumber: **LapakGIS_Batas Kabupaten/Kota Indonesia** https://www.lapakgis.com/2022/01/shp-batas-kabupaten-kota-indonesia.html 
 
 Tanggal akses: **4 Oktober 2026**.
 
@@ -348,21 +348,6 @@ Interaksi yang tersedia pada aplikasi antara lain:
 - tooltip informatif;
 - zoom dan pan pada peta;
 - interpretasi yang berubah mengikuti pilihan pengguna.
-
----
-
-## Desain Responsif
-
-Aplikasi menggunakan layout responsif untuk desktop, tablet, dan ponsel.
-
-Beberapa penyesuaian yang diterapkan:
-
-- kolom otomatis ditumpuk pada layar sempit;
-- chart menggunakan lebar container;
-- kontrol dapat melakukan wrap;
-- navigasi tetap dapat digunakan pada layar kecil;
-- tipografi dan jarak antarelemen disesuaikan berdasarkan ukuran layar;
-- tidak menggunakan iframe custom sehingga halaman mempertahankan satu alur scroll browser.
 
 ---
 
